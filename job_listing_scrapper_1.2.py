@@ -1,3 +1,15 @@
+"""
+Module: Data Preprocessing
+Description: This module handles the cleaning, transformation, and feature engineering of the raw dataset.
+Version: 1.2.3
+Author: Jane Doe
+Image: https://raw.githubusercontent.com/your-username/your-repo/main/images/data_preprocessing.png
+Dependencies:
+    - pandas
+    - numpy
+Usage: Import the module and call the `process_data()` function.
+"""
+
 #
 # I will use a dotenv approach to configure the scrapper job. This approach
 # allow me to protect sensitive information such as the url source of the data. It

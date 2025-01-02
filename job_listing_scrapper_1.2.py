@@ -1,13 +1,8 @@
 """
-Module: Data Preprocessing
-Description: This module handles the cleaning, transformation, and feature engineering of the raw dataset.
-Version: 1.2.3
-Author: Jane Doe
-Image: https://raw.githubusercontent.com/your-username/your-repo/main/images/data_preprocessing.png
-Dependencies:
-    - pandas
-    - numpy
-Usage: Import the module and call the `process_data()` function.
+Title: Jobs Vacancies scrapper
+Description: This modules performs scrapping of job listings
+Image: "lab_market_trends/job_listings_scrapper.png"
+Author: Juan Guillermo
 """
 
 #

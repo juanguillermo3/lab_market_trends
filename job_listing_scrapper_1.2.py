@@ -1,4 +1,5 @@
 """
+project: lab_market_trends
 title: Jobs Vacancies scrapper
 description: This modules performs scrapping of job listings
 image: "lab_market_trends/job_listings_scrapper.png"

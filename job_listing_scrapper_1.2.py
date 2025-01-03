@@ -4,6 +4,7 @@ title: Jobs Vacancies scrapper
 description: This modules performs scrapping of job listings
 image: job_listings_scrapper.png
 Author: Juan Guillermo
+new_field: something
 Include in Portfolio: True
 """
 

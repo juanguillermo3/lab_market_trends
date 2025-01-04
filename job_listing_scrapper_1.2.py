@@ -2,7 +2,6 @@
 project: lab_market_trends
 title: Jobs Vacancies scrapper
 description: This modules performs scrapping of job listings
-image: job_listings_scrapper.png
 Author: Juan Guillermo
 field: something
 Include in Portfolio: True

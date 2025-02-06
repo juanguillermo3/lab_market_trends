@@ -40,8 +40,7 @@ EXPORT_PATH = os.getenv("EXPORT_PATH", "bigrams_output.json")
 #
 # Feature Discovery
 #
-
-def feature_discovery_service(line, broadcasted_bigrams, broadcasted_unigrams, valid_token_expression=r"^[a-zA-Z]+$"):
+def feature_discovery_service(line, broadcasted_bigrams, broadcasted_unigrams, valid_token_expression=r"^[a-zA-Z]+$", **kwargs):
     """
     Extract significant features (unigrams + bigrams) from a job listing description.
 
@@ -50,10 +49,14 @@ def feature_discovery_service(line, broadcasted_bigrams, broadcasted_unigrams, v
     - broadcasted_bigrams: Broadcasted set of significant bigrams for comparison.
     - broadcasted_unigrams: Broadcasted set of significant unigrams for comparison.
     - valid_token_expression: Regex pattern to validate tokens.
+    - kwargs: Additional keyword arguments (e.g., 'drop_low_order_ngrams').
 
     Returns:
     - List of features: Significant unigrams and bigrams.
     """
+    # Extract 'drop_low_order_ngrams' from kwargs (default to False if not provided)
+    drop_low_order_ngrams = kwargs.get('drop_low_order_ngrams', False)
+
     def generate_unigrams_and_bigrams(line, broadcasted_unigrams, valid_token_expression):
         words = line.lower().split()
         if valid_token_expression:
@@ -65,8 +68,15 @@ def feature_discovery_service(line, broadcasted_bigrams, broadcasted_unigrams, v
         return unigrams, bigrams
 
     unigrams, bigrams = generate_unigrams_and_bigrams(line, broadcasted_unigrams, valid_token_expression)
+
+    # Filter the bigrams against the broadcasted bigrams list
     filtered_bigrams = [bigram for bigram in bigrams if bigram in broadcasted_bigrams.value]
 
+    if drop_low_order_ngrams:
+        # If drop_low_order_ngrams is True, remove unigrams that form a pair of bigrams
+        unigrams = [unigrams[i] for i in range(len(unigrams) - 1) if f"{unigrams[i]} {unigrams[i+1]}" not in filtered_bigrams]
+
+    # Return unigrams plus the filtered bigrams
     return unigrams + filtered_bigrams
 
 #
@@ -98,7 +108,7 @@ def label_wage_service(line, wage_pattern=r"(\d+)-(\d+)"):
 # Prepare Wages and Features
 #
 
-def prepare_wages_and_features(input_rdd, sc, significant_bigrams, significant_unigrams):
+def prepare_wages_and_features(input_rdd, sc, significant_bigrams, significant_unigrams, **kwargs):
     """
     Extract wages and significant features (unigrams + bigrams) from job listings.
 
@@ -107,6 +117,7 @@ def prepare_wages_and_features(input_rdd, sc, significant_bigrams, significant_u
     - sc: Spark context for broadcasting variables.
     - significant_bigrams: List of significant bigrams.
     - significant_unigrams: List of significant unigrams.
+    - kwargs: Additional keyword arguments (e.g., 'drop_low_order_ngrams') to pass to feature_discovery_service.
 
     Returns:
     - RDD of tuples containing the wage and features.
@@ -114,11 +125,14 @@ def prepare_wages_and_features(input_rdd, sc, significant_bigrams, significant_u
     broadcasted_bigrams = sc.broadcast(significant_bigrams)
     broadcasted_unigrams = sc.broadcast(significant_unigrams)
 
+    # Pass all keyword arguments to feature_discovery_service
     processed_rdd = input_rdd.map(lambda line: (
         label_wage_service(line[0]),
-        feature_discovery_service(line[1], broadcasted_bigrams, broadcasted_unigrams)
+        feature_discovery_service(line[1], broadcasted_bigrams, broadcasted_unigrams, **kwargs)  # Forward kwargs
     ))
+
     return processed_rdd
+
 
 #
 # Performance Estimation
@@ -140,6 +154,11 @@ def time_processing_on_sample(input_rdd, sample_size, target_sample_size, sc, si
     - Estimated time to process the target number of samples.
     """
     sampled_rdd = input_rdd.takeSample(withReplacement=False, num=sample_size)
+    start_time = time.time()
+    prepare_wages_and_features(sc.parallelize(sampled_rdd), sc, significant_bigrams, significant_unigrams).collect()
+    elapsed_time = time.time() - start_time
+
+    return (elapsed_time / sample_size) * target_sample_size
     start_time = time.time()
     prepare_wages_and_features(sc.parallelize(sampled_rdd), sc, significant_bigrams, significant_unigrams).collect()
     elapsed_time = time.time() - start_time

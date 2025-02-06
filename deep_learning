@@ -1,4 +1,3 @@
-%%writefile deep_learning.py
 """
 title: Neural Networks for Wages Prediction
 description: Provides a deep learning approach based on a deep, feed-forward NN to predict wages.

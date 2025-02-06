@@ -1,3 +1,5 @@
+%%writefile ml_samples.py
+
 """
 title: ML samples
 description: Several tools for writing/reading a vectorized dataframe as partitioned data on disk and serving the ML samples for training.
@@ -10,17 +12,16 @@ from pyspark.ml.linalg import SparseVector
 from pyspark.sql import SparkSession
 import json
 import shutil
+from typing import Any, Dict
 import logging
-from pyspark.sql import DataFrame
-from typing import Dict, Any
 from dotenv import load_dotenv
-
-# Load environment variables
-load_dotenv()
 
 # Set up the logger
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+
+# Load environment variables
+load_dotenv()
 
 # Pipeline parameters
 APP_HOME = "/content/drive/MyDrive/scapping_lab_market"
@@ -30,34 +31,39 @@ NUM_FOLDERS = 5
 #
 # (0) Persist training partitions on disk
 #
-def persist_training_partitions(vectorized_df: DataFrame, metadata_dict: dict, training_data_folder: str, num_folders: int):
+def persist_training_partitions(vectorized_df: DataFrame,
+                                metadata_dict: dict,
+                                training_data_folder=TRAINING_DATA_FOLDER,
+                                num_folders=NUM_FOLDERS):
     """
-    Persist training partitions in Parquet format and store metadata as JSON.
+    This function persists training partitions in Parquet format, ensuring the target folder is cleared beforehand,
+    and stores arbitrary metadata in a JSON file.
 
     Parameters:
-        - vectorized_df (DataFrame): The DataFrame containing the vectorized data.
-        - metadata_dict (dict): The dictionary containing metadata.
-        - training_data_folder (str): Path to store partitions.
-        - num_folders (int): Number of partitions to split the data into.
+    - vectorized_df (DataFrame): The DataFrame containing the vectorized data.
+    - metadata_dict (dict): The dictionary containing arbitrary metadata to be saved as JSON.
+    - training_data_folder (str): The folder where partitions will be saved.
+    - num_folders (int): The number of partitions to split the data into.
     """
-    # Ensure the output directory is cleared before writing
+    # Ensure the output directory is fully cleared before writing
     if os.path.exists(training_data_folder):
-        shutil.rmtree(training_data_folder)
+        shutil.rmtree(training_data_folder)  # Deletes all existing partitions
         logger.info(f"Cleared old training data folder: {training_data_folder}")
 
+    # Recreate the folder
     os.makedirs(training_data_folder, exist_ok=True)
     logger.info(f"Created fresh training data folder: {training_data_folder}")
 
     # Split the dataframe into num_folders partitions
     splits = vectorized_df.randomSplit([1.0] * num_folders, seed=42)
 
-    # Save each partition separately
+    # Save each partition separately in Parquet format
     for i, split_df in enumerate(splits):
         partition_path = os.path.join(training_data_folder, f"fold_{i}.parquet")
         split_df.write.mode("overwrite").parquet(partition_path)
         logger.debug(f"Saved partition {i} to {partition_path}")
 
-    # Save metadata to JSON file
+    # Save metadata to a JSON file
     metadata_path = os.path.join(training_data_folder, "metadata.json")
     with open(metadata_path, 'w') as metadata_file:
         json.dump(metadata_dict, metadata_file, indent=4)
@@ -159,3 +165,4 @@ def get_training_metadata(metadata_file=os.path.join(TRAINING_DATA_FOLDER, "meta
         metadata = json.load(f)
 
     return metadata
+

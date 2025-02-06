@@ -111,3 +111,4 @@ def standardize_text_job_listings(rdd, pipeline_steps=None, wage_pattern=r"(\d+)
 
     # Return an RDD with tuples of (wage_info, standardized_text)
     return current_rdd.map(process_line)
+

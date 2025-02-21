@@ -1,12 +1,13 @@
-
 """
 title: deduplication service for the job listings
 description: Provides a brute_force_deduplication to deduplicate an RDD with the job listings, by implementing a reduceByKey op which only keep the first text per vancancy code.
 """
 
 import re
+from typing import List, Tuple, Optional
+from pyspark.rdd import RDD
 
-def get_top_duplicates(rdd, n=None, pattern=r"^\d+"):
+def get_top_duplicates(rdd: RDD[str], n: Optional[int] = None, pattern: str = r"^\d+") -> List[Tuple[str, int]]:
     """
     Returns the top n most duplicated codes from an RDD, or all duplicates if n is None.
 

@@ -1,6 +1,6 @@
 """
 title: ML samples
-description: Several tools for writing/reading a vectorized dataframe as partitioned data on disk and serving the ML samples for training.
+description: Several tools for writing and reading a vectorized dataframe as partitioned data on disk and serving the ML samples for training.
 """
 
 import os

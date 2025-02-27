@@ -8,7 +8,7 @@ description: Key operational workflow, which fits a NN model for wages and disco
 #
 import os
 import datetime
-
+ 
 APP_HOME = "/content/drive/MyDrive/scapping_lab_market"
 os.chdir(APP_HOME)
 
@@ -39,7 +39,9 @@ wages_model=train_wages_model(train_X, train_y, val_X, val_y, num_epochs=150,  t
 marginal_effects = mine_marginal_effects_with_proportion(wages_model, feature_names, val_X )
 marginal_effects
 
-
+#
+# 4.
+#
 result = commit_inference(
     segment_keyword=get_training_metadata()['segment_keyword'],
     start_date=datetime(2024, 1, 15),
